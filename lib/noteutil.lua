@@ -33,21 +33,21 @@ end
 -- ------------------------------------------------------------------------
 -- screen y <-> hz
 
-function noteutil.screen_to_hz(y, note_factor, note_offset)
+function noteutil.screen_to_hz(y, note_factor, note_offset, mode)
   if note_factor == nil then note_factor = 1 end
   if note_offset == nil then note_offset = 0 end
   -- return y * hz_factor + hz_offset
   -- return util.linexp(0, W_NOTE * 128, HZ_MIN, HZ_MAX, y) * hz_factor + hz_offset
-  return frequtil.fromlin(((y / W_ROLL_NOTE) / note_factor + note_offset))
+  return frequtil.fromlin(((y / W_ROLL_NOTE) / note_factor + note_offset), mode)
 end
 
-function noteutil.hz_to_screen(hz, note_factor, note_offset)
+function noteutil.hz_to_screen(hz, note_factor, note_offset, mode)
   if note_factor == nil then note_factor = 1 end
   if note_offset == nil then note_offset = 0 end
 
   -- return (hz - hz_offset) / hz_factor
   -- return util.explin(HZ_MIN, HZ_MAX, 0, W_NOTE * 128, hz - hz_offset) / hz_factor
-  return (frequtil.tolin(hz) - note_offset) * W_ROLL_NOTE * note_factor
+  return (frequtil.tolin(hz, mode) - note_offset) * W_ROLL_NOTE * note_factor
 end
 
 

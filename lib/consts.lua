@@ -6,7 +6,7 @@ local musicutil = require("lib/musicutil")
 -- general
 
 FPS = 60
--- FPS = 10
+-- FPS = 1
 
 -- ------------------------------------------------------------------------
 -- boundaries

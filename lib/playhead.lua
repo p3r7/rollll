@@ -48,7 +48,7 @@ function Playhead:note_on(m, note)
   if m ~= nil then
     -- TODO: handle bend
     local n = musicutil.freq_to_note_num(note.hz)
-    m:note_on(n, 1.0, 1)
+    m:note_on(n, 127, 1)
   end
 end
 
@@ -64,7 +64,7 @@ function Playhead:note_off(m, note)
 
   if m ~= nil then
     local n = musicutil.freq_to_note_num(note.hz)
-    m:note_off(n, 0.0, 1)
+    m:note_off(n, 0, 1)
   end
 end
 

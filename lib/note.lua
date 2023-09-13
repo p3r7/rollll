@@ -17,13 +17,11 @@ include("lib/consts")
 -- ------------------------------------------------------------------------
 -- constructor
 
-function Note.new(hz, time, parent)
+function Note.new(hz, time)
   local p = setmetatable({}, Note)
 
   p.hz = hz
   p.time = time
-
-  p.parent = parent
 
   p.playing = false
 
@@ -36,15 +34,15 @@ end
 -- ------------------------------------------------------------------------
 -- screen
 
-function Note:screen_coords()
-  local x = noteutil.time_to_screen(self.time, self.parent.t_factor, self.parent.left_t)
-  local y = noteutil.hz_to_screen(self.hz, self.parent.note_factor, self.parent.top_note)
+function Note:screen_coords(roll)
+  local x = noteutil.time_to_screen(self.time, roll.t_factor, roll.left_t)
+  local y = noteutil.hz_to_screen(self.hz, roll.note_factor, roll.top_note, roll.freq_scale)
 
   return x, y
 end
 
-function Note:redraw()
-  local x, y = self:screen_coords()
+function Note:redraw(roll)
+  local x, y = self:screen_coords(roll)
 
   if self.is_cursor then
     local pct_off = frequtil.offness(self.hz)

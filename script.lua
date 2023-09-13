@@ -6,13 +6,19 @@ local inspect = require("lib/inspect")
 local lattice = require("lattice")
 
 musicutil = require("lib/musicutil")
-timeutil = include("lib/timeutil")
 frequtil = include("lib/frequtil")
+z_tuning = include("lib/z_tuning/z_tuning")
+timeutil = include("lib/timeutil")
 noteutil = include("lib/noteutil")
 kbdutil = include("lib/kbdutil")
 
+
+local bleached = include("lib/bleached")
+
 local Roll = include("lib/roll")
 local Playhead = include("lib/playhead")
+
+include("lib/core")
 
 include("lib/consts")
 
@@ -22,6 +28,7 @@ include("lib/consts")
 
 local s_lattice
 
+notes = {}
 roll = nil
 playhead = nil
 
@@ -38,6 +45,39 @@ snap_note = false
 
 m = nil
 
+b = nil
+
+local function bleached_cc_cb(midi_msg)
+  local row = bleached.cc_to_row(midi_msg.cc)
+  local pot = bleached.cc_to_row_pot(midi_msg.cc)
+  local v = midi_msg.val
+
+  print("pot "..row.."."..pot.." just got its value changed to "..v)
+end
+
+midi.add = function (dev, is_input)
+  if is_input and util.string_starts(dev.name, "bleached")  then
+    print("found bleached!")
+    print("id="..dev.id)
+    print("port="..dev.port)
+    -- NB: doesn't work as seamstress doesn't support the <midi_input>.event callback
+    -- bleached.init(bleached_cc_cb, dev)
+  end
+
+  -- if not is_input and dev.name == "seamstress_out" then
+  --   print("detected seamstress_out !!!!!!!!")
+  --     m = midi:connect_output(dev.port)
+  -- end
+
+  -- print("JB: "..dev.name)
+
+  if not is_input and util.string_starts(dev.name, "Midi Through:") then
+    print("detected MIDI through !!!!!!!!")
+    m = midi.connect_output(dev.port)
+  end
+
+end
+
 
 -- ------------------------------------------------------------------------
 -- script lifecycle
@@ -45,10 +85,33 @@ m = nil
 local clock_redraw
 
 function init()
-  roll = Roll.new(30)
+  roll = Roll.new(notes, 30)
   playhead = Playhead.new(roll)
 
-  m = midi:connect_output()
+  local freq_scales = {"lin", "log2", "log2_edo12"}
+  params:add_option("freq_scale", "frequency scale", freq_scales, tab.key(freq_scales, "log2_edo12"))
+  params:set_action("freq_scale", function(_v)
+                      roll.freq_scale = params:string("freq_scale")
+  end)
+
+
+  params:add_option("tuning", "tuning", z_tuning.names, tab.key(z_tuning.names, "edo12"))
+  params:set_action("tuning", function(_v)
+                      local t = params:string("tuning")
+                      roll:set_tuning(t)
+  end)
+
+  params:add_number("tuning_root_note", "root_note", 0, 127, 69)
+  params:set_action("tuning_root_note", function(v)
+                      roll:set_tuning_root_note(v)
+  end)
+
+  for _, dev in pairs(midi.outputs) do
+    if dev.name~=nil and dev.name == "seamstress_out" then
+      -- print("detected seamstress_out !!!!!!!!")
+      -- m = midi.connect_output(dev.port)
+    end
+  end
 
   s_lattice = lattice:new{
     ppqn = PPQN

@@ -9,8 +9,14 @@ local frequtil = {}
 -- deps
 
 local musicutil = require("lib/musicutil")
+local z_tuning = include("lib/z_tuning/z_tuning")
 
-include("lib/consts")
+
+-- ------------------------------------------------------------------------
+-- consts
+
+frequtil.HZ_MIN = musicutil.note_num_to_freq(0)
+frequtil.HZ_MAX = musicutil.note_num_to_freq(127)
 
 
 -- ------------------------------------------------------------------------
@@ -104,21 +110,47 @@ local LOG_SCALE = 2^(1/12)
 
 -- like a continuous version of `musicutil.freq_to_note_num`
 -- only works well on the range HZ_MIN-HZ_MAX (mapped to 0-127)
-function frequtil.tolin(hz)
-  local min_log = math.log(HZ_MIN, LOG_SCALE)
-  local max_log = math.log(HZ_MAX, LOG_SCALE)
-  local freq_log = math.log(hz, LOG_SCALE)
+function frequtil.tolin(hz, mode)
+  if mode == nil then mode = "log2_edo12" end
+
+  if mode == "lin" then
+    return hz
+  end
+
+  local log_scale = 1
+  if mode == "log2_edo12" then
+    log_scale = 2^(1/12)
+  elseif mode == "log2" then
+      log_scale = 2
+  end
+
+  local min_log = math.log(frequtil.HZ_MIN, log_scale)
+  local max_log = math.log(frequtil.HZ_MAX, log_scale)
+  local freq_log = math.log(hz, log_scale)
   local v = (freq_log - min_log) / (max_log - min_log) * 127
   return v
 end
 
 -- like a continuous version of `musicutil.note_num_to_freq`
 -- only works well on the input range 0-127
-function frequtil.fromlin(v)
-  local min_log = math.log(HZ_MIN, LOG_SCALE)
-  local max_log = math.log(HZ_MAX, LOG_SCALE)
+function frequtil.fromlin(v, mode)
+  if mode == nil then mode = "log2_edo12" end
+
+  if mode == "lin" then
+    return v
+  end
+
+  local log_scale = 1
+  if mode == "log2_edo12" then
+    log_scale = 2^(1/12)
+  elseif mode == "log2" then
+      log_scale = 2
+  end
+
+  local min_log = math.log(frequtil.HZ_MIN, log_scale)
+  local max_log = math.log(frequtil.HZ_MAX, log_scale)
   local freq_log = min_log + (max_log - min_log) * v / 127
-  local hz = LOG_SCALE^(freq_log)
+  local hz = log_scale^(freq_log)
   return hz
 end
 
