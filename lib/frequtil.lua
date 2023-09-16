@@ -9,7 +9,9 @@ local frequtil = {}
 -- deps
 
 local musicutil = require("lib/musicutil")
-local z_tuning = include("lib/z_tuning/z_tuning")
+if z_tuning == nil then
+  z_tuning = include("lib/z_tuning/z_tuning")
+end
 
 
 -- ------------------------------------------------------------------------
@@ -35,12 +37,13 @@ end
 -- ------------------------------------------------------------------------
 -- math
 
-function frequtil.floor(hz)
+function frequtil.floor(hz, tuning)
+  if tuning == nil then tuning = "edo12" end
   local note = musicutil.freq_to_note_num(hz)
   return musicutil.note_num_to_freq(note)
 end
 
-function frequtil.ceil(hz)
+function frequtil.ceil(hz, tuning)
   local note = musicutil.freq_to_note_num(hz)
   if hz == musicutil.note_num_to_freq(note) then
     return hz
@@ -48,9 +51,10 @@ function frequtil.ceil(hz)
   return musicutil.note_num_to_freq(util.clamp(note+1, 0, 127))
 end
 
-function frequtil.round(hz)
-  local floored = frequtil.floor(hz, div)
-  local ceiled = frequtil.ceil(hz, div)
+function frequtil.round(hz, tuning)
+  if tuning == nil then tuning = "edo12" end
+  local floored = frequtil.floor(hz, tuning)
+  local ceiled = frequtil.ceil(hz, tuning)
 
   local diff_f = math.abs(hz - floored)
   local diff_c = math.abs(hz - ceiled)
@@ -81,9 +85,9 @@ end
 
 -- end
 
-function frequtil.offness(hz)
-  local prv = frequtil.floor(hz)
-  local nxt = frequtil.ceil(hz)
+function frequtil.offness(hz, tuning)
+  local prv = frequtil.floor(hz, tuning)
+  local nxt = frequtil.ceil(hz, tuning)
 
   if hz == prv or hz == nxt then
     return 0

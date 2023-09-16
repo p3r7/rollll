@@ -9,7 +9,9 @@ Roll.__index = Roll
 
 local musicutil = require("lib/musicutil")
 local frequtil = include("lib/frequtil")
-local z_tuning = include("lib/z_tuning/z_tuning")
+if z_tuning == nil then
+  z_tuning = include("lib/z_tuning/z_tuning")
+end
 local timeutil = include("lib/timeutil")
 local noteutil = include("lib/noteutil")
 
@@ -69,7 +71,7 @@ function Roll:update_note_cursor(x, y)
 
   local hz = noteutil.screen_to_hz(y, self.note_factor, self.top_note, self.freq_scale)
   if self.quant_f then
-    self.note_cursor.hz = frequtil.round(hz)
+    self.note_cursor.hz = frequtil.round(hz, self.tuning)
   else
     self.note_cursor.hz = hz
   end

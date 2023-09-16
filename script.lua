@@ -2,16 +2,19 @@
 -- @eigen
 
 
+local ControlSpec = require "controlspec"
+local Formatters = require "formatters"
 local inspect = require("lib/inspect")
 local lattice = require("lattice")
 
 musicutil = require("lib/musicutil")
 frequtil = include("lib/frequtil")
-z_tuning = include("lib/z_tuning/z_tuning")
+if z_tuning == nil then
+  z_tuning = include("lib/z_tuning/z_tuning")
+end
 timeutil = include("lib/timeutil")
 noteutil = include("lib/noteutil")
 kbdutil = include("lib/kbdutil")
-
 
 local bleached = include("lib/bleached")
 
@@ -101,9 +104,23 @@ function init()
                       roll:set_tuning(t)
   end)
 
-  params:add_number("tuning_root_note", "root_note", 0, 127, 69)
+    params:add_option("tuning_root_note_mode", "root note mode", {"dumb", "adjust", "pivot"})
+
+  params:add{type = "control", id = "tuning_root_freq", name = "root freq", controlspec = ControlSpec.FREQ, formatter = Formatters.format_freq}
+  params:set_action("tuning_root_freq", function(v)
+                      roll:set_tuning_root_frequency(v)
+  end)
+
+  params:add_number("tuning_root_note", "root note", 0, 127, 69)
   params:set_action("tuning_root_note", function(v)
-                      roll:set_tuning_root_note(v)
+                      local mode = params:string("tuning_root_note_mode")
+                      if mode == "dumb" then
+                        roll:set_tuning_root_note(v)
+                      elseif mode == "adjust" then
+                        roll:set_tuning_note_adjusting(v)
+                      elseif mode == "pivot" then
+                        roll:set_tuning_note_pivoting(v)
+                      end
   end)
 
   for _, dev in pairs(midi.outputs) do
