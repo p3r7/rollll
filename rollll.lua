@@ -58,15 +58,7 @@ local function bleached_cc_cb(midi_msg)
   print("pot "..row.."."..pot.." just got its value changed to "..v)
 end
 
-midi.add = function (dev, is_input)
-  if is_input and util.string_starts(dev.name, "bleached")  then
-    print("found bleached!")
-    print("id="..dev.id)
-    print("port="..dev.port)
-    -- NB: doesn't work as seamstress doesn't support the <midi_input>.event callback
-    -- bleached.init(bleached_cc_cb, dev)
-  end
-
+midi.add = function (dev)
   -- if not is_input and dev.name == "seamstress_out" then
   --   print("detected seamstress_out !!!!!!!!")
   --     m = midi:connect_output(dev.port)
@@ -74,10 +66,10 @@ midi.add = function (dev, is_input)
 
   -- print("JB: "..dev.name)
 
-  if not is_input and util.string_starts(dev.name, "Midi Through:") then
-    print("detected MIDI through !!!!!!!!")
-    m = midi.connect_output(dev.port)
-  end
+  -- if not is_input and util.string_starts(dev.name, "Midi Through:") then
+  -- print("detected MIDI through !!!!!!!!")
+  -- m = midi.connect(dev.port)
+  -- end
 
 end
 
@@ -123,7 +115,7 @@ function init()
                       end
   end)
 
-  for _, dev in pairs(midi.outputs) do
+  for _, dev in pairs(midi.devices) do
     if dev.name~=nil and dev.name == "seamstress_out" then
       -- print("detected seamstress_out !!!!!!!!")
       -- m = midi.connect_output(dev.port)
